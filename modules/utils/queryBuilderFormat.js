@@ -10,6 +10,54 @@ import {
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 
+/* function fo format field description */
+export const formatFieldForQueryBuilder = (field, fieldDefinition, fieldSeparator) => {
+    //debugger;
+    var fieldStructArray = field.split(fieldSeparator);
+    var tableName = (fieldStructArray.length == 1) ? '' : fieldStructArray[0];
+    var fieldName = (fieldStructArray.length == 1) ? fieldStructArray[0] :
+        ((arr) => {
+            var result = arr.slice();
+            result.shift();
+            return result.join(fieldSeparator)
+        })(fieldStructArray);
+
+    fieldName = fieldDefinition.fieldName ? fieldDefinition.fieldName : fieldName;
+    var result = [];
+    result.push(fieldName);
+
+    if (fieldDefinition.tableName === '') {
+        tableName = '';
+    } else {
+        tableName = fieldDefinition.tableName == undefined ? tableName : fieldDefinition.tableName;
+    }
+
+    if (tableName) {
+        result.unshift(tableName)
+    }
+
+    return result.join(fieldSeparator);
+};
+/*
+//testing code for formatFieldForQueryBuilder:
+testData = {
+    testNum:        [        0,        1,        2,        3,  4,    5,        6,        7,        8,        9,   10,   11],
+    field:          [      'f',      'f',      'f',      'f','f',  'f',    't.f',    't.f',    't.f',    't.f','t.f','t.f'],
+    tableName:      [undefined,       '',      'T',undefined, '',  'T',undefined,       '',      'T',undefined,   '',  'T'],
+    fieldName:      [undefined,undefined,undefined,      'F','F',  'F',undefined,undefined,undefined,      'F',  'F',  'F'],
+    expectedResult: [      'f',      'f',    'T.f',      'F','F','T.F',    't.f',      'f',    'T.f',    't.F',  'F','T.F'],
+    fieldSeparator: '.'
+}
+
+testData.testNum.forEach((item, i) => {
+    var fieldDefinition = {tableName: testData.tableName[i], fieldName: testData.fieldName[i]};
+    var testResult = formatFieldForQueryBuilder(testData.field[i], fieldDefinition, testData.fieldSeparator);
+    console.assert(testResult == testData.expectedResult[i], 'not passed test ' + i + '\n' +
+        'expected: <' + testData.expectedResult[i] + '>, got: <' + testResult + '>' + '\n',
+        testData.field[i], fieldDefinition.fieldName, fieldDefinition.tableName);
+});
+*/
+
 /*
  Build tree to http://querybuilder.js.org/ like format
 
@@ -108,10 +156,13 @@ export const queryBuilderFormat = (item, config, rootQuery = null) => {
         const typeConfig = config.types[fieldDefinition.type] || {};
 
         //format field
+/*
         if (fieldDefinition.tableName) {
           const regex = new RegExp(field.split(config.settings.fieldSeparator)[0])
           field = field.replace(regex, fieldDefinition.tableName)
         }
+*/
+        field = formatFieldForQueryBuilder(field, fieldDefinition, config.settings.fieldSeparator);
 
         if (value.size < cardinality)
             return undefined;
@@ -137,7 +188,7 @@ export const queryBuilderFormat = (item, config, rootQuery = null) => {
         let operatorOptions = options ? options.toJS() : null;
         if (operatorOptions && !Object.keys(operatorOptions).length)
             operatorOptions = null;
-        
+
         var ruleQuery = {
             id,
             field,

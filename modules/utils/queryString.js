@@ -2,6 +2,7 @@ import {getFieldConfig, getWidgetForFieldOp, getOperatorConfig, getFieldWidgetCo
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import {defaultValue} from "./stuff";
+import {formatFieldForQueryBuilder} from './queryBuilderFormat';
 
 export const queryString = (item, config, isForDisplay = false) => {
     const type = item.get('type');
@@ -106,10 +107,13 @@ export const queryString = (item, config, isForDisplay = false) => {
             return undefined;
         
         //format field
+/*
         if (fieldDefinition.tableName) {
           const regex = new RegExp(field.split(fieldSeparator)[0])
           field = field.replace(regex, fieldDefinition.tableName)
         }
+*/
+        field = formatFieldForQueryBuilder(field, fieldDefinition, config.settings.fieldSeparator);
         let fieldParts = field.split(fieldSeparator);
         //let fieldKeys = getFieldPath(field, config);
         let fieldPartsLabels = getFieldPathLabels(field, config);
